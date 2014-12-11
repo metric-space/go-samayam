@@ -1,43 +1,78 @@
 package main
 
-import ("fmt";"time";"os/exec";"os")
+import ("github.com/nsf/termbox-go";"time")
 
-const heading string = " go-samayam "
-// experimental version
 
-func gen_iterator(start, end int) func() int{
-	start_ := start
-	end_ := end
-	return func () int {
-		if start_<end_ {
-			start_ += 1
-			return start_ 
-		} else {
-			return 0
-		}
+// unicode constants
+const (
+	v = '\u2502'
+	h = '\u2500'
+	box_ul = '\u256d'
+	box_ur = '\u256e'
+	box_ll = '\u2570'
+	box_lr = '\u256f'
+	name = " SAMAYAM "
+)
 
+type BOX struct {
+
+	width,height int	
+	x_start,y_start int
+
+}
+
+func draw_vertical(x,y,h int){
+
+	for i := y ; i <= y+h-1 ; i++ {
+		termbox.SetCell(x,i,v,termbox.ColorRed,termbox.ColorBlack)
 	}
 }
 
-func screen_writer( xs [2](func() int) ){
+func draw_horizontal(x,y,w int){
 
-
-	for {
-
-		command := exec.Command("clear")
-		command.Stdout = os.Stdout
-		command.Run()
-		for y :=0;y<2;y++{			
-
-		   fmt.Println(xs[y]())	   		
-		}
-		time.Sleep(1000*time.Millisecond)
+	for i := x ; i <= x+w-1 ; i++ {
+		termbox.SetCell(i,y,h,termbox.ColorRed,termbox.ColorBlack)
 	}
 }
 
+func box_filler(x,y,w int){
+	// debug function
+	a := [5] termbox.Attribute{ termbox.ColorRed,termbox.ColorGreen,termbox.ColorYellow } 
+	for i := x ; i <= x+w-1 ; i++ {
+		termbox.SetCell(i,y,h,termbox.ColorWhite,a[i%3])
+	}
+}
+
+func (r *BOX) draw_mainbox(){
+
+	//draw_vertical(r.x_start,r.y_start+1,r.height-1)
+	
+	termbox.SetCell(r.x_start,r.y_start,box_ul,termbox.ColorRed,termbox.ColorBlack)
+	draw_horizontal(r.x_start+1,r.y_start,r.width-2)
+	termbox.SetCell(r.x_start+r.width-1,r.y_start,box_ur,termbox.ColorRed,termbox.ColorBlack)
+
+	termbox.SetCell(r.x_start,r.y_start+r.height-1,box_ll,termbox.ColorRed,termbox.ColorBlack)
+	draw_horizontal(r.x_start+1,r.y_start+r.height-1,r.width-2)
+	termbox.SetCell(r.x_start+r.width-1,r.y_start+r.height-1,box_lr,termbox.ColorRed,termbox.ColorBlack)
+
+	draw_vertical(r.x_start,r.y_start+1,r.height-2)
+	draw_vertical(r.x_start+r.width-1,r.y_start+1,r.height-2)
+
+}
 
 func main(){
-	x := [2]( func() int){  gen_iterator(10,100),gen_iterator(300,400)}
-	screen_writer(x)
+
+	errit := termbox.Init()
+	if errit != nil {
+		panic(" Trouble somewhere")
+	} else {
+		x := BOX{width:20,x_start:3,y_start:3,height:20}
+		x.draw_mainbox()
+		termbox.Flush()
+		time.Sleep(10*time.Second)
+	}
+	defer termbox.Close()
 
 }
+
+
