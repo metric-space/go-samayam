@@ -8,10 +8,8 @@ schedule appointments and time activities.
 
 ### Project Goals
 
-1. non-curses and curses interface
-2. TDD
-3. clean go code
-4. heavily commented
-5. absolutely no-admin related stuff
-6. Easy to install and use
-7. Target distros: Arch for now
+1. clean go code ( not accomplished)
+2. heavily commented ( haha ... yeah sure )
+3. absolutely no-admin related stuff ( using termbox-go may be a violation of that goal )
+4. Easy to install and use ( still working on that )
+5. Target distros: Arch for now (  still far from that )
