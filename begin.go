@@ -14,6 +14,10 @@ const (
 	name = " SAMAYAM "
 	FG = termbox.ColorRed
 	BG = termbox.ColorBlack
+	H_SPACE = 1
+	H_LEN =5
+	V_SPACE = 2
+	V_LEN =5
 )
 
 type BOX struct {
@@ -28,6 +32,12 @@ type TASK struct {
 	task string
 	start time.Time 
 	end time.Time
+}
+
+type TASK_TREE struct {
+
+	tree []TASK
+
 }
 
 func draw_string_box(fill string,x,y,padding int){
@@ -85,8 +95,23 @@ func (r *BOX) draw_mainbox(){
 
 func ( t *TASK) draw_task (x,y,padding int){
 	s := []string{t.task,t.start.String()}
-	string_to_draw :=  strings.Join(s, " --- " )
+	string_to_draw :=  strings.Join(s, "    " )
 	draw_string_box(string_to_draw,x,y,padding )
+
+}
+
+func ( t* TASK_TREE) draw_tree(){
+
+	//length := len(t.tree)
+	for i,j :=range(t.tree){
+		box_x := H_SPACE + H_LEN
+		box_y := V_SPACE + i*V_LEN
+		j.draw_task(box_x,box_y,1)
+		draw_horizontal(H_SPACE,box_y+1,H_LEN)
+		if i>=1 {
+			draw_vertical(H_SPACE,box_y+1-V_LEN,V_LEN)
+		}
+	}
 
 }
 
@@ -98,10 +123,16 @@ func main(){
 	} else {
 		//x := BOX{width:20,x_start:3,y_start:3,height:20}
 		//x.draw_mainbox()
-		task_1 := TASK{task:" finish samayam",start:time.Now()}
-		task_1.draw_task(10,10,2)
-		termbox.Flush()
-		time.Sleep(10*time.Second)
+		for  {
+			task_1 := TASK_TREE{tree:[]TASK{  TASK{task:" take meeko for a walk",start:time.Now()}, TASK{task:" finish samayam",start:time.Now()}, TASK{task:" finish python",start:time.Now()}}}
+			task_1.draw_tree()
+			termbox.Flush()
+			g := termbox.PollEvent()
+			if g.Ch == 'z'{
+				break
+			}
+			termbox.Clear(FG,BG)
+		}
 	}
 	defer termbox.Close()
 
