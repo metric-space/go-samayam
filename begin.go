@@ -1,6 +1,11 @@
 package main
 
-import ("github.com/nsf/termbox-go";"time";"strings")
+import (
+	"github.com/nsf/termbox-go"
+	"time"
+	"strings"
+	s "strconv"
+)
 
 
 // unicode constants
@@ -41,8 +46,34 @@ type TASK struct {
 	end time.Time
 }
 
+func array_equalizer(x []string) []string {
+
+	max_ := 0
+	// find maximu length
+	for _, j := range(x) {
+		if len(j) > max_ {
+			max_ = len(j)		
+		}
+	}
+	temp := make([]string,0)
+	for _,j  := range(x) {
+		temp = append(temp,j+strings.Repeat(" ",max_-len(j)))	
+	}
+	return temp
+}
+
+func  formatez(t time.Time ) []string {
+
+	hour,min,sec := t.Clock()
+	year,month,day := t.Date()
+	a1 := "Day  : "+ t.Weekday().String()
+	a2 := "Time : "+s.Itoa(hour)+":"+s.Itoa(min)+":"+s.Itoa(sec)
+	a3 := "Date : "+s.Itoa(day)+"/"+month.String()+"/"+s.Itoa(year)
+
+	return array_equalizer([]string{a1,a2,a3})
+}
+
 func draw_string(fill string,x,y int){
-	
 	for i,j := range fill {
 			termbox.SetCell(x+i,y,j,FG,BG)
 		}
@@ -51,16 +82,17 @@ func draw_string(fill string,x,y int){
 }
 
 
-func draw_string_box(fill string,x,y,padding int){
+func draw_string_box(fill []string,x,y,padding int){
 
 
-	actual_width := len(fill) + 2*padding
-	actual_height :=  1 + 2*padding
+	actual_width := len(fill[0]) + 2*padding
+	actual_height :=  len(fill) + 2*padding
 	actual_start_x := x + padding
 	actual_start_y := y + padding
 
-	draw_string(fill,actual_start_x,actual_start_y)
-
+	for i,j := range(fill){
+		draw_string(j,actual_start_x,actual_start_y+i)	
+	}
 	rect := BOX{ x_start:x,y_start:y,width:actual_width,height:actual_height}
 	rect.draw_mainbox()
 }
