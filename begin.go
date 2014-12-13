@@ -12,7 +12,7 @@ const (
 	box_ll = '\u2570'
 	box_lr = '\u256f'
 	name = " SAMAYAM "
-	FG = termbox.ColorRed
+	FG = termbox.ColorWhite
 	BG = termbox.ColorBlack
 	H_SPACE = 1
 	H_LEN =5
@@ -27,6 +27,13 @@ type BOX struct {
 
 }
 
+type INSERT struct {
+
+	x,y int
+	buffer string
+
+}
+
 type TASK struct {
 
 	task string
@@ -34,11 +41,15 @@ type TASK struct {
 	end time.Time
 }
 
-type TASK_TREE struct {
+func draw_string(fill string,x,y int){
+	
+	for i,j := range fill {
+			termbox.SetCell(x+i,y,j,FG,BG)
+		}
 
-	tree []TASK
 
 }
+
 
 func draw_string_box(fill string,x,y,padding int){
 
@@ -48,9 +59,7 @@ func draw_string_box(fill string,x,y,padding int){
 	actual_start_x := x + padding
 	actual_start_y := y + padding
 
-	for i,j := range fill {
-		termbox.SetCell(actual_start_x+i,actual_start_y,j,FG,BG)
-	}
+	draw_string(fill,actual_start_x,actual_start_y)
 
 	rect := BOX{ x_start:x,y_start:y,width:actual_width,height:actual_height}
 	rect.draw_mainbox()
@@ -100,10 +109,10 @@ func ( t *TASK) draw_task (x,y,padding int){
 
 }
 
-func ( t* TASK_TREE) draw_tree(){
+func draw_tree(tree []TASK){
 
 	//length := len(t.tree)
-	for i,j :=range(t.tree){
+	for i,j :=range(tree){
 		box_x := H_SPACE + H_LEN
 		box_y := V_SPACE + i*V_LEN
 		j.draw_task(box_x,box_y,1)
@@ -118,18 +127,41 @@ func ( t* TASK_TREE) draw_tree(){
 func main(){
 
 	errit := termbox.Init()
+	screen_w,screen_h := termbox.Size()
+
+
 	if errit != nil {
 		panic(" Trouble somewhere")
 	} else {
 		//x := BOX{width:20,x_start:3,y_start:3,height:20}
 		//x.draw_mainbox()
 		for  {
-			task_1 := TASK_TREE{tree:[]TASK{  TASK{task:" take meeko for a walk",start:time.Now()}, TASK{task:" finish samayam",start:time.Now()}, TASK{task:" finish python",start:time.Now()}}}
-			task_1.draw_tree()
+			task_1 := []TASK{ TASK{task:" take meeko for a walk",start:time.Now()}, TASK{task:" finish samayam",start:time.Now()}, TASK{task:" finish python",start:time.Now()}}
+			draw_tree(task_1)
+
+			commandbox := BOX{x_start:H_SPACE,y_start:screen_h-V_SPACE-3,width:screen_w-H_SPACE-1,height:3}	
+			commandbox.draw_mainbox()
+			draw_string("COMMAND : ",H_SPACE+2,screen_h-V_SPACE-2)
+			draw_string(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",H_SPACE+1,screen_h-1)
 			termbox.Flush()
 			g := termbox.PollEvent()
+			ogg := INSERT{x:H_SPACE+2+len("COMMAND :"),y:screen_h-V_SPACE-2,buffer:""}
 			if g.Ch == 'z'{
 				break
+			} else if g.Ch == 'i'{
+				for {
+
+					g :=  termbox.PollEvent()
+					if g.Key == termbox.KeyEnter {
+						break	
+					}else if g.Key == termbox.KeySpace{
+						break
+					}else{
+						ogg.buffer+=string(g.Ch)
+						draw_string(ogg.buffer,ogg.x,ogg.y)			
+						termbox.Flush()
+					}
+				}
 			}
 			termbox.Clear(FG,BG)
 		}
