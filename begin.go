@@ -153,11 +153,11 @@ func (r *BOX) draw_mainbox(){
 
 func ( t *TASK) draw_task (x,y,padding int){
 
-	end_string_array := make([]string,0)
-	s := [][]string{format_string(t.task),formatez(t.start)}
+	end_string_array := make([]string,0) // the final array to be processed
+	s := [][]string{format_string(t.task,5),formatez(t.start)}
 
-	max_length_index = 0
-	max_length = 0
+	max_length_index := 0
+	max_length := 0
 	for i,j := range(s){
 		k := len(j)
 		if k > max_length {
@@ -165,13 +165,26 @@ func ( t *TASK) draw_task (x,y,padding int){
 			max_length_index = i
 		}
 	}
-	for i,j := range(s){
-		if i != max_length_index
+	for i,_ := range(s){
+		if i != max_length_index{
+			for len(s[i]) <= max_length{
+				s[i] = append(s[i],strings.Repeat(" ",max_length))
+			}	
+		}
 
 
 	}
-	string_to_draw :=  strings.Join(s, "    " )
-	draw_string_box(strings_to_draw[],x,y,padding )
+	for i:=0;i<len(s[0]);i++{
+
+		a := []string{}
+		for  j :=0;j<len(s);j++{
+			a = append(a,s[j][i])	
+
+		}
+		 end_string_array = append(end_string_array,strings.Join(a, "    " ))
+	}
+
+	draw_string_box(end_string_array,x,y,padding )
 
 }
 
