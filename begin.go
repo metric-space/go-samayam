@@ -62,7 +62,24 @@ func array_equalizer(x []string) []string {
 	return temp
 }
 
-func  formatez(t time.Time ) []string {
+func format_string( x string, cut int) []string {
+	// assume for now the input strings ia long string separated by " " 
+	aka := strings.Split(x," ")
+	new_array := make([]string,0)
+	temp := ""
+	for _,j := range(aka){
+		if len(temp)+len(j) < cut {
+			temp+=j	
+		}else{
+			new_array=append(new_array,temp+strings.Repeat("0",cut-len(temp)))
+			temp = ""+j
+		}
+	}
+	new_array = append(new_array,temp+strings.Repeat("0",cut-len(temp)))
+	return new_array
+}
+
+func formatez(t time.Time ) []string {
 
 	hour,min,sec := t.Clock()
 	year,month,day := t.Date()
@@ -135,9 +152,26 @@ func (r *BOX) draw_mainbox(){
 }
 
 func ( t *TASK) draw_task (x,y,padding int){
-	s := []string{t.task,t.start.String()}
+
+	end_string_array := make([]string,0)
+	s := [][]string{format_string(t.task),formatez(t.start)}
+
+	max_length_index = 0
+	max_length = 0
+	for i,j := range(s){
+		k := len(j)
+		if k > max_length {
+			max_length = k
+			max_length_index = i
+		}
+	}
+	for i,j := range(s){
+		if i != max_length_index
+
+
+	}
 	string_to_draw :=  strings.Join(s, "    " )
-	draw_string_box(string_to_draw,x,y,padding )
+	draw_string_box(strings_to_draw[],x,y,padding )
 
 }
 
