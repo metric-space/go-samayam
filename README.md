@@ -5,6 +5,7 @@
 This is a command line utility used to log events, create a to-do-list,
 schedule appointments and time activities.
 
+![](https://github.com/nerorevenge/go-samayam/tree/master/Pictures/screen_2014-12-16-08-12-28.png)
 
 ### Project Goals
 
