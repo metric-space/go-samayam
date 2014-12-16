@@ -31,7 +31,29 @@ func TestOfCustom(t *testing.T){
 				t.Error("-"+j+"-")
 			 }
 
-			t.Errorf("CUstom function isn't working the way it is supposed to ");
+			t.Errorf("Custom function isn't working the way it is supposed to ");
 	 }
+
+}
+
+func TestMod_split(t *testing.T){
+
+	a :="aaaaabbbbbc"
+	b := Mod_split(a,5)
+	if !reflect.DeepEqual(b,[]string{"aaaaa","bbbbb","c"}){
+		t.Error("Actual output is :",b)
+	}
+
+
+}
+
+func TestFormat_string(t *testing.T){
+
+	//a :=" The name of gotham is batman"
+	//b := Format_string(a,3)
+	//if !reflect.DeepEqual(b,[]string{"The","nam","e"}){
+	//		t.Error("Actual output is :",b)
+	//}
+
 
 }

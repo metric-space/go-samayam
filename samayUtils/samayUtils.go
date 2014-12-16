@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 	s "strconv"
-	"fmt"
 )
 
 
@@ -24,21 +23,42 @@ func array_equalizer (x []string) []string {
 	return temp
 }
 
+func Mod_split(x string, mod int ) []string {
+
+	if len(x) < mod {
+		return []string{x}
+	}else {
+		to_return := make([]string,0)	
+		counter :=0
+		temp := ""
+		for _,j := range(x){
+			if counter < mod{
+				temp+=string(j)
+				counter++
+			}else{
+				to_return = append(to_return,temp)
+				temp = string(j)
+				counter = 1
+			}
+		}
+		to_return = append(to_return,temp)
+		return to_return	
+	}
+}
+
 func Format_string( x string, cut int) []string {
+	// this function break up user input task from a long horizontal line
+	// to multiple vertical lines
 	// assume for now the input strings ia long string separated by " " 
 	aka := strings.Split(x," ")
-	new_array := make([]string,0)
-	temp := ""
-	for _,j := range(aka){
-		if len(temp)+len(j) < cut {
-			temp+=j	
-		}else{
-			new_array=append(new_array,temp+strings.Repeat("0",cut-len(temp)))
-			temp = ""+j
+	processed_aka := make([]string,0)
+	
+	// preprocessing step
+	for _,j := range aka {
+		   processed_aka = append(processed_aka,Mod_split(j,cut)...)
 		}
-	}
-	new_array = append(new_array,temp+strings.Repeat("0",cut-len(temp)))
-	return new_array
+
+	return (processed_aka)
 }
 
 func Formatez(t time.Time ) []string {
@@ -72,7 +92,6 @@ func CustomFunction(s [][]string) []string {
 			max_length_index = i
 		}
 	}
-	fmt.Println("break 1 ")
 	// iterate through the arrays in the array to make them 
 	//of equal length, and then equalize the inner array
 	for i,_ := range(s){

@@ -3,8 +3,9 @@ package main
 import (
 	"github.com/nsf/termbox-go"
 	"time"
-	"strings"
-	s "strconv"
+	"strconv"
+//	"strings"
+	utils "github.com/nerorevenge/go-samayam/samayUtils"
 )
 
 
@@ -23,6 +24,7 @@ const (
 	H_LEN =5
 	V_SPACE = 2
 	V_LEN =5
+	EXPERIMENTAL_MAX = 4
 )
 
 type BOX struct {
@@ -33,68 +35,31 @@ type BOX struct {
 }
 
 type INSERT struct {
-
 	x,y int
 	buffer string
 
 }
 
 type TASK struct {
-
+	index int
 	task string
 	start time.Time 
 	end time.Time
 }
-
-func array_equalizer(x []string) []string {
-
-	max_ := 0
-	// find maximu length
-	for _, j := range(x) {
-		if len(j) > max_ {
-			max_ = len(j)		
-		}
-	}
-	temp := make([]string,0)
-	for _,j  := range(x) {
-		temp = append(temp,j+strings.Repeat(" ",max_-len(j)))	
-	}
-	return temp
+// soon to be replaced by linked list
+type TASK_TREE struct {
+	tree []TASK
 }
 
-func format_string( x string, cut int) []string {
-	// assume for now the input strings ia long string separated by " " 
-	aka := strings.Split(x," ")
-	new_array := make([]string,0)
-	temp := ""
-	for _,j := range(aka){
-		if len(temp)+len(j) < cut {
-			temp+=j	
-		}else{
-			new_array=append(new_array,temp+strings.Repeat("0",cut-len(temp)))
-			temp = ""+j
-		}
-	}
-	new_array = append(new_array,temp+strings.Repeat("0",cut-len(temp)))
-	return new_array
-}
-
-func formatez(t time.Time ) []string {
-
-	hour,min,sec := t.Clock()
-	year,month,day := t.Date()
-	a1 := "Day  : "+ t.Weekday().String()
-	a2 := "Time : "+s.Itoa(hour)+":"+s.Itoa(min)+":"+s.Itoa(sec)
-	a3 := "Date : "+s.Itoa(day)+"/"+month.String()+"/"+s.Itoa(year)
-
-	return array_equalizer([]string{a1,a2,a3})
+func (t *TASK_TREE) add_to(x string){
+	e := len(t.tree)	
+	t.tree = append(t.tree,TASK{index:e,task:x,start:time.Now()})
 }
 
 func draw_string(fill string,x,y int){
 	for i,j := range fill {
 			termbox.SetCell(x+i,y,j,FG,BG)
 		}
-
 
 }
 
@@ -153,52 +118,31 @@ func (r *BOX) draw_mainbox(){
 
 func ( t *TASK) draw_task (x,y,padding int){
 
-	end_string_array := make([]string,0) // the final array to be processed
-	s := [][]string{format_string(t.task,5),formatez(t.start)}
-
-	max_length_index := 0
-	max_length := 0
-	for i,j := range(s){
-		k := len(j)
-		if k > max_length {
-			max_length = k
-			max_length_index = i
-		}
-	}
-	for i,_ := range(s){
-		if i != max_length_index{
-			for len(s[i]) <= max_length{
-				s[i] = append(s[i],strings.Repeat(" ",max_length))
-			}	
-		}
-
-
-	}
-	for i:=0;i<len(s[0]);i++{
-
-		a := []string{}
-		for  j :=0;j<len(s);j++{
-			a = append(a,s[j][i])	
-
-		}
-		 end_string_array = append(end_string_array,strings.Join(a, "    " ))
-	}
-
+	s := [][]string{[]string{strconv.Itoa(t.index)},[]string{t.task},utils.Formatez(t.start)}
+	end_string_array := utils.CustomFunction(s)
 	draw_string_box(end_string_array,x,y,padding )
 
 }
 
-func draw_tree(tree []TASK){
+func (t* TASK_TREE) draw_tree(start int){
 
 	//length := len(t.tree)
-	for i,j :=range(tree){
+	counter := 0
+	for i:=start;i<len(t.tree);i++{
+
+		if counter > EXPERIMENTAL_MAX-1 {
+			break
+		}
+
 		box_x := H_SPACE + H_LEN
-		box_y := V_SPACE + i*V_LEN
-		j.draw_task(box_x,box_y,1)
+		box_y := V_SPACE + counter*V_LEN
+		t.tree[i].draw_task(box_x,box_y,1)
 		draw_horizontal(H_SPACE,box_y+1,H_LEN)
-		if i>=1 {
+			
+		if i>start {
 			draw_vertical(H_SPACE,box_y+1-V_LEN,V_LEN)
 		}
+		counter++
 	}
 
 }
@@ -214,9 +158,16 @@ func main(){
 	} else {
 		//x := BOX{width:20,x_start:3,y_start:3,height:20}
 		//x.draw_mainbox()
+
+		start_index := 0
 		for  {
-			task_1 := []TASK{ TASK{task:" take meeko for a walk",start:time.Now()}, TASK{task:" finish samayam",start:time.Now()}, TASK{task:" finish python",start:time.Now()}}
-			draw_tree(task_1)
+			task :=  TASK_TREE{ tree:make([]TASK,0)}
+			task.add_to("take meeko for a walk")	
+			task.add_to("play super mario")
+			task.add_to("smash pigs")
+			task.add_to("EXPEIRMENAK ")
+			task.add_to("draw something ..")
+			task.draw_tree(start_index)
 
 			commandbox := BOX{x_start:H_SPACE,y_start:screen_h-V_SPACE-3,width:screen_w-H_SPACE-1,height:3}	
 			commandbox.draw_mainbox()
@@ -241,6 +192,9 @@ func main(){
 						termbox.Flush()
 					}
 				}
+			}else if g.Key == termbox.KeyArrowDown {
+				start_index= (start_index+1)%len(task.tree)
+
 			}
 			termbox.Clear(FG,BG)
 		}
