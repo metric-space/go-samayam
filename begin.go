@@ -3,9 +3,12 @@ package main
 import (
 	"github.com/nsf/termbox-go"
 	"time"
+	"os/user"
 	"strconv"
-//	"strings"
+	"fmt"
 	utils "github.com/nerorevenge/go-samayam/samayUtils"
+	parse "github.com/nerorevenge/go-samayam/parseUtils"
+	file "github.com/nerorevenge/go-samayam/fileUtils"
 )
 
 
@@ -25,6 +28,8 @@ const (
 	V_SPACE = 2
 	V_LEN =5
 	EXPERIMENTAL_MAX = 4
+	DIRECTORY_ = ".go-samayam-data"
+	FILE_= "data.gob"
 )
 
 type BOX struct {
@@ -41,19 +46,19 @@ type INSERT struct {
 }
 
 type TASK struct {
-	index int
-	task string
-	start time.Time 
-	end time.Time
+	Index int
+	Task string
+	Start time.Time 
+	End time.Time
 }
 // soon to be replaced by linked list
 type TASK_TREE struct {
-	tree []TASK
+	Tree []TASK
 }
 
 func (t *TASK_TREE) add_to(x string){
-	e := len(t.tree)	
-	t.tree = append(t.tree,TASK{index:e,task:x,start:time.Now()})
+	e := len(t.Tree)	
+	t.Tree = append(t.Tree,TASK{Index:e,Task:x,Start:time.Now()})
 }
 
 func draw_string(fill string,x,y int){
@@ -118,7 +123,12 @@ func (r *BOX) draw_mainbox(){
 
 func ( t *TASK) draw_task (x,y,padding int){
 
-	s := [][]string{[]string{strconv.Itoa(t.index)},[]string{t.task},utils.Formatez(t.start)}
+	time_start := []string{}
+	time_start = append(time_start,[]string{" START "," ----- "}...)
+	time_start = append(time_start,utils.Formatez(t.Start)...)
+
+	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.Task},time_start}
+
 	end_string_array := utils.CustomFunction(s)
 	draw_string_box(end_string_array,x,y,padding )
 
@@ -128,7 +138,7 @@ func (t* TASK_TREE) draw_tree(start int){
 
 	//length := len(t.tree)
 	counter := 0
-	for i:=start;i<len(t.tree);i++{
+	for i:=start;i<len(t.Tree);i++{
 
 		if counter > EXPERIMENTAL_MAX-1 {
 			break
@@ -136,7 +146,7 @@ func (t* TASK_TREE) draw_tree(start int){
 
 		box_x := H_SPACE + H_LEN
 		box_y := V_SPACE + counter*V_LEN
-		t.tree[i].draw_task(box_x,box_y,1)
+		t.Tree[i].draw_task(box_x,box_y,1)
 		draw_horizontal(H_SPACE,box_y+1,H_LEN)
 			
 		if i>start {
@@ -147,27 +157,44 @@ func (t* TASK_TREE) draw_tree(start int){
 
 }
 
+var main_tree TASK_TREE
+
+func act(xs []string, destination string) {
+	switch xs[0] {
+		case "ADD": 
+			main_tree.add_to(xs[1])
+			file.Put(destination,main_tree)
+
+	}
+}
+
+// log file functions and associated variables
+
+
+
 func main(){
 
 	errit := termbox.Init()
 	screen_w,screen_h := termbox.Size()
 
-
+	
 	if errit != nil {
 		panic(" Trouble somewhere")
 	} else {
 		//x := BOX{width:20,x_start:3,y_start:3,height:20}
 		//x.draw_mainbox()
+		
+		file.Check(DIRECTORY_,FILE_)
 
 		start_index := 0
+
+		x,_ := user.Current()
+		destination := x.HomeDir+"/"+DIRECTORY_+"/"+FILE_
+		file.Get(destination,&main_tree)
+		fmt.Println(main_tree.Tree)
 		for  {
-			task :=  TASK_TREE{ tree:make([]TASK,0)}
-			task.add_to("take meeko for a walk")	
-			task.add_to("play super mario")
-			task.add_to("smash pigs")
-			task.add_to("EXPEIRMENAK ")
-			task.add_to("draw something ..")
-			task.draw_tree(start_index)
+					 
+			main_tree.draw_tree(start_index)
 
 			commandbox := BOX{x_start:H_SPACE,y_start:screen_h-V_SPACE-3,width:screen_w-H_SPACE-1,height:3}	
 			commandbox.draw_mainbox()
@@ -182,18 +209,23 @@ func main(){
 				for {
 
 					g :=  termbox.PollEvent()
-					if g.Key == termbox.KeyEnter {
-						break	
-					}else if g.Key == termbox.KeySpace{
+					if  g.Key == termbox.KeyEnter {
+						a:= parse.Tokenize(ogg.buffer)
+						if parse.Validate(a){
+							act(a,destination)
+						}
 						break
-					}else{
+					}else if g.Key == termbox.KeySpace{
+							ogg.buffer+=" "
+							
+					}else {	
 						ogg.buffer+=string(g.Ch)
 						draw_string(ogg.buffer,ogg.x,ogg.y)			
 						termbox.Flush()
 					}
-				}
+				    }
 			}else if g.Key == termbox.KeyArrowDown {
-				start_index= (start_index+1)%len(task.tree)
+				start_index= (start_index+1)%len(main_tree.Tree)
 
 			}
 			termbox.Clear(FG,BG)
