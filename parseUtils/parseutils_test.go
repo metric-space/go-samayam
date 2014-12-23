@@ -28,7 +28,7 @@ func TestTokenize ( t *testing.T){
 
 func TestValidate(t * testing.T) {
 
-	var string_to_test = "ADD something something"
+	var string_to_test = "ADD something something "
 	var string_to_test2 = "SOI gilanujj "
 
 	if !Validate(Tokenize(string_to_test)){

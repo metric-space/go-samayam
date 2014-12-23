@@ -18,12 +18,38 @@ func Tokenize ( command string) []string {
 
 }
 
-func Validate ( command_string []string) bool {
+func Validate ( commandString []string) bool {
 
-	switch command_string[0] {
+	length := len(commandString)
 
-	case "ADD","DELETE","EDIT","RESTART","STOP":
-		return true
+	switch commandString[0] {
+
+	case "ADD":
+		if length >= 2 {
+			return true
+		}
+		break
+	case "DELETE":
+		if length == 2 {
+			return true
+		}
+		break
+	case "EDIT":
+		if length == 3 {
+			return true
+		}
+		break
+	case "RESTART":
+		if length == 1 {
+			return true
+		}
+		break
+	case "STOP":
+		if length == 1 {
+			return true
+		}
+		break	
+	
 	}
 
 	return false
