@@ -37,6 +37,9 @@ type TASK struct {
 	Start time.Time 
 	End time.Time
 	Len int
+	Hours int
+	Minutes int
+	Seconds int
 }
 // soon to be replaced by linked list
 type TASK_TREE struct {
@@ -66,6 +69,19 @@ func (t *TASK_TREE) edit(index int, newTask string){
 		}
 }
 
+func ( t *TASK) stop_task (x,y,padding int){
+
+	time_start := []string{}
+	time_start = append(time_start,[]string{" START "," ----- "}...)
+	time_start = append(time_start,utils.Formatez(t.Start)...)
+
+	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.Task},time_start}
+
+	end_string_array := utils.CustomFunction(s)
+	draw.StringBox(end_string_array,x,y,padding )
+	t.Len = len(end_string_array)+2*padding
+}
+
 
 func ( t *TASK) draw_task (x,y,padding int){
 
@@ -74,6 +90,19 @@ func ( t *TASK) draw_task (x,y,padding int){
 	time_start = append(time_start,utils.Formatez(t.Start)...)
 
 	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.Task},time_start}
+	
+	if !t.End.IsZero(){
+		time_stop := []string{}
+		time_stop = append(time_stop,[]string{" STOP "," ----- "}...)
+		time_stop = append(time_stop,utils.Formatez(t.End)...)
+		s = append(s,time_stop)	
+
+		interval := []string{}
+		interval = append(interval,[]string{" INTERVAL "," ----- "}...)
+		temp := []string{"Seconds :"+strconv.Itoa(t.Seconds), "Minutes :"+strconv.Itoa(t.Minutes), "Hours   :"+strconv.Itoa(t.Hours)}
+		interval = append(interval,temp...)
+		s = append(s,interval)	
+	}
 
 	end_string_array := utils.CustomFunction(s)
 	draw.StringBox(end_string_array,x,y,padding )
@@ -110,15 +139,29 @@ func act(xs []string, destination string) {
 	switch xs[0] {
 		case "ADD": 
 			main_tree.add_to(strings.Join(xs[1:]," "))
-			file.Put(destination,main_tree)
 		case "DELETE":
 			a ,_:= strconv.Atoi(xs[1])
 			main_tree.deleteFrom(a)
-			file.Put(destination,main_tree)
 		case "EDIT":
 			a, _:=strconv.Atoi(xs[1])
 			main_tree.edit(a,xs[2])
+		case "STOP":
+			a, _:=strconv.Atoi(xs[1])
+			main_tree.Tree[a].End = time.Now()
+			b:= main_tree.Tree[a].End.Sub(main_tree.Tree[a].Start)
+			main_tree.Tree[a].Hours = int(b.Hours())
+			main_tree.Tree[a].Minutes =  int(b.Minutes())-60*int(b.Hours())
+			d := main_tree.Tree[a]
+			main_tree.Tree[a].Seconds = int(b.Seconds())-(3600*d.Hours+60*d.Minutes)
+
+		case "RESTART":
+			a, _:=strconv.Atoi(xs[1])
+			var b time.Time
+			main_tree.Tree[a].Start = time.Now()
+			main_tree.Tree[a].End = b
+
 	}
+		file.Put(destination,main_tree)
 }
 
 // log file functions and associated variables
