@@ -191,7 +191,7 @@ func main(){
 		for  {
 			mainTree.DrawTree(startIndex)
 
-			commandbox := draw.BOX{X_start:HSPACE,Y_start:screenH-VSPACE-3,Width:screenW-HSPACE-1,Height:3}	
+			commandbox := draw.BOX{Xstart:HSPACE,Ystart:screenH-VSPACE-3,Width:screenW-HSPACE-1,Height:3}	
 			commandbox.Box()
 			draw.String("COMMAND : ",HSPACE+2,screenH-VSPACE-2)
 			draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",HSPACE+1,screenH-1)
