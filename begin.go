@@ -5,7 +5,6 @@ import (
 	"time"
 	"os/user"
 	"strconv"
-	"fmt"
 	"strings"
 	utils "github.com/nerorevenge/go-samayam/samayUtils"
 	parse "github.com/nerorevenge/go-samayam/parseUtils"
@@ -16,24 +15,24 @@ import (
 
 // constants
 const (
-	H_SPACE = 1
-	H_LEN =5
-	V_SPACE = 2
-	V_LEN =5
-	EXPERIMENTAL_MAX = 4
+	HSPACE = 1
+	HLEN =5
+	VSPACE = 2
+	VLEN =5
+	EXPMAX = 4
 	DIRECTORY = ".go-samayam-data"
 	FILE = "data.gob"
 )
 
-type INSERT struct {
+type Insert struct {
 	x,y int
 	buffer string
 
 }
 
-type TASK struct {
+type Task struct {
 	Index int
-	Task string
+	TaskString string
 	Start time.Time 
 	End time.Time
 	Len int
@@ -42,19 +41,19 @@ type TASK struct {
 	Seconds int
 }
 // soon to be replaced by linked list
-type TASK_TREE struct {
-	Tree []TASK
+type TaskTree struct {
+	Tree []Task
 }
 
-func (t *TASK_TREE) add_to(x string){
+func (t *TaskTree) AddTo(x string){
 	e := len(t.Tree)	
-	t.Tree = append(t.Tree,TASK{Index:e,Task:x,Start:time.Now()})
+	t.Tree = append(t.Tree,Task{Index:e,TaskString:x,Start:time.Now()})
 }
 
-func (t *TASK_TREE) deleteFrom(x int){
+func (t *TaskTree) DeleteFrom(x int){
 	e := len(t.Tree)
 	if x <= e-1{
-		t.Tree = append(t.Tree[:x],t.Tree[x+1:]...)
+		t.Tree = append(t.Tree[:x],t.Tree[x+1:]...) // this part is responsible for the deletion
 
 		for i,_ := range(t.Tree){
 			t.Tree[i].Index = i
@@ -62,40 +61,26 @@ func (t *TASK_TREE) deleteFrom(x int){
 	}
 }
 
-func (t *TASK_TREE) edit(index int, newTask string){
+func (t *TaskTree) Edit(index int, newTask string){
 	e := len(t.Tree)
 	if index <= e-1{
-		 t.Tree[index].Task = newTask
+		 t.Tree[index].TaskString = newTask
 		}
 }
 
-func ( t *TASK) stop_task (x,y,padding int){
+func ( t *Task) DrawTask (x,y,padding int){
 
-	time_start := []string{}
-	time_start = append(time_start,[]string{" START "," ----- "}...)
-	time_start = append(time_start,utils.Formatez(t.Start)...)
+	timeStart := []string{}
+	timeStart = append(timeStart,[]string{" START "," ----- "}...)
+	timeStart = append(timeStart,utils.Formatez(t.Start)...)
 
-	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.Task},time_start}
-
-	end_string_array := utils.CustomFunction(s)
-	draw.StringBox(end_string_array,x,y,padding )
-	t.Len = len(end_string_array)+2*padding
-}
-
-
-func ( t *TASK) draw_task (x,y,padding int){
-
-	time_start := []string{}
-	time_start = append(time_start,[]string{" START "," ----- "}...)
-	time_start = append(time_start,utils.Formatez(t.Start)...)
-
-	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.Task},time_start}
+	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.TaskString},timeStart}
 	
 	if !t.End.IsZero(){
-		time_stop := []string{}
-		time_stop = append(time_stop,[]string{" STOP "," ----- "}...)
-		time_stop = append(time_stop,utils.Formatez(t.End)...)
-		s = append(s,time_stop)	
+		timeStop := []string{}
+		timeStop = append(timeStop,[]string{" STOP "," ----- "}...)
+		timeStop = append(timeStop,utils.Formatez(t.End)...)
+		s = append(s,timeStop)	
 
 		interval := []string{}
 		interval = append(interval,[]string{" INTERVAL "," ----- "}...)
@@ -104,64 +89,82 @@ func ( t *TASK) draw_task (x,y,padding int){
 		s = append(s,interval)	
 	}
 
-	end_string_array := utils.CustomFunction(s)
-	draw.StringBox(end_string_array,x,y,padding )
-	t.Len = len(end_string_array)+2*padding
+	endStringArray := utils.CustomFunction(s)
+	draw.StringBox(endStringArray,x,y,padding )
+	t.Len = len(endStringArray)+2*padding
 }
 
-func (t* TASK_TREE) DrawTree(start int){
+func (t* TaskTree) DrawTree(start int){
 
 	//length := len(t.tree)
 	yCounter := 0
 
 	counter := 0
-	for i:=start;i<len(t.Tree);i++{
+	for i:=start;;i=(i+1)%len(t.Tree){
 
-		if counter > EXPERIMENTAL_MAX-1 {
+		if counter > EXPMAX-1 || counter > len(t.Tree)-1 {
 			break
 		}
-		box_x := H_SPACE + H_LEN
-		box_y := V_SPACE + yCounter
-		t.Tree[i].draw_task(box_x,box_y,1)
+		box_x := HSPACE + HLEN
+		box_y := VSPACE + yCounter
+		t.Tree[i].DrawTask(box_x,box_y,1)
 		yCounter += t.Tree[i].Len
-		draw.Horizontal(H_SPACE,box_y+1,H_LEN)
-		if i>start {
-			draw.Vertical(H_SPACE,box_y+1-V_LEN,t.Tree[i].Len)
+		draw.Horizontal(HSPACE,box_y+1,HLEN)
+		if counter>0 {
+			draw.Vertical(HSPACE,box_y+1-VLEN,t.Tree[i].Len)
 		}
 		counter++
 	}
 
 }
 
-var main_tree TASK_TREE
+var mainTree TaskTree
+
+func WithinRange (x int) bool {
+		if x < len(mainTree.Tree){
+			return true	
+		}
+		return false
+	}
+
 
 func act(xs []string, destination string) {
+
 	switch xs[0] {
 		case "ADD": 
-			main_tree.add_to(strings.Join(xs[1:]," "))
+			mainTree.AddTo(strings.Join(xs[1:]," "))
 		case "DELETE":
 			a ,_:= strconv.Atoi(xs[1])
-			main_tree.deleteFrom(a)
+			mainTree.DeleteFrom(a)
 		case "EDIT":
 			a, _:=strconv.Atoi(xs[1])
-			main_tree.edit(a,xs[2])
+			if !WithinRange(a){
+				break
+			}
+			mainTree.Edit(a,xs[2])
 		case "STOP":
 			a, _:=strconv.Atoi(xs[1])
-			main_tree.Tree[a].End = time.Now()
-			b:= main_tree.Tree[a].End.Sub(main_tree.Tree[a].Start)
-			main_tree.Tree[a].Hours = int(b.Hours())
-			main_tree.Tree[a].Minutes =  int(b.Minutes())-60*int(b.Hours())
-			d := main_tree.Tree[a]
-			main_tree.Tree[a].Seconds = int(b.Seconds())-(3600*d.Hours+60*d.Minutes)
+			if !WithinRange(a){
+				break
+			}
+			mainTree.Tree[a].End = time.Now()
+			b:= mainTree.Tree[a].End.Sub(mainTree.Tree[a].Start)
+			mainTree.Tree[a].Hours = int(b.Hours())
+			mainTree.Tree[a].Minutes =  int(b.Minutes())-60*int(b.Hours())
+			d := mainTree.Tree[a]
+			mainTree.Tree[a].Seconds = int(b.Seconds())-(3600*d.Hours+60*d.Minutes)
 
 		case "RESTART":
 			a, _:=strconv.Atoi(xs[1])
+			if !WithinRange(a){
+				break
+			}
 			var b time.Time
-			main_tree.Tree[a].Start = time.Now()
-			main_tree.Tree[a].End = b
+			mainTree.Tree[a].Start = time.Now()
+			mainTree.Tree[a].End = b
 
 	}
-		file.Put(destination,main_tree)
+		file.Put(destination,mainTree)
 }
 
 // log file functions and associated variables
@@ -172,35 +175,38 @@ func main(){
 
 	errit := termbox.Init()
 	defer termbox.Close()
-	screen_w,screen_h := termbox.Size()
+	screenW,screenH := termbox.Size()
 
 	
 	if errit != nil {
 		panic(" Trouble somewhere")
 	} else {
-		//x := BOX{width:20,x_start:3,y_start:3,height:20}
-		//x.draw_mainbox()
 		file.Check(DIRECTORY,FILE)
 
-		start_index := 0
+		startIndex := 0
 
 		x,_ := user.Current()
 		destination := x.HomeDir+"/"+DIRECTORY+"/"+FILE
-		file.Get(destination,&main_tree)
-		fmt.Println(main_tree.Tree)
+		file.Get(destination,&mainTree)
 		for  {
-			main_tree.DrawTree(start_index)
+			mainTree.DrawTree(startIndex)
 
-			commandbox := draw.BOX{X_start:H_SPACE,Y_start:screen_h-V_SPACE-3,Width:screen_w-H_SPACE-1,Height:3}	
+			commandbox := draw.BOX{X_start:HSPACE,Y_start:screenH-VSPACE-3,Width:screenW-HSPACE-1,Height:3}	
 			commandbox.Box()
-			draw.String("COMMAND : ",H_SPACE+2,screen_h-V_SPACE-2)
-			draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",H_SPACE+1,screen_h-1)
+			draw.String("COMMAND : ",HSPACE+2,screenH-VSPACE-2)
+			draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",HSPACE+1,screenH-1)
 			termbox.Flush()
 			g := termbox.PollEvent()
-			ogg := INSERT{x:H_SPACE+2+len("COMMAND :"),y:screen_h-V_SPACE-2,buffer:""}
+			ogg := Insert{x:HSPACE+2+len("COMMAND :"),y:screenH-VSPACE-2,buffer:""}
 			if g.Ch == 'z'{
 				break
-			} else if g.Ch == 'i'{
+			} else if g.Ch == 'h' {
+				termbox.Clear(draw.FG,draw.BG)
+				draw.String(" [ Press any button to exit ] ",HSPACE+1,screenH-1)
+				draw.String("  ( ADD taskString) || ( DELETE INDEX) || ( EDIT INDEX taskString  )||(STOP INDEX) || ( RESTART INDEX )",HSPACE,int(screenH/2))
+				termbox.Flush()
+				termbox.PollEvent()
+			}else if g.Ch == 'i'{
 				for {
 
 					g :=  termbox.PollEvent()
@@ -218,10 +224,16 @@ func main(){
 						termbox.Flush()
 					}
 				    }
+			}else if g.Key == termbox.KeyArrowUp {
+				if  startIndex > 0 {
+					startIndex= (startIndex-1)%len(mainTree.Tree)
+				} else {
+					startIndex = len(mainTree.Tree)-1
+				}
 			}else if g.Key == termbox.KeyArrowDown {
-				start_index= (start_index+1)%len(main_tree.Tree)
-
+				startIndex= (startIndex+1)%len(mainTree.Tree)
 			}
+
 			termbox.Clear(draw.FG,draw.BG)
 		}
 	}
