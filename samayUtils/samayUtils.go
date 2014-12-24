@@ -7,28 +7,28 @@ import (
 )
 
 
-func array_equalizer (x []string) []string {
+func ArrayEqualizer (x []string) []string {
 
-	max_ := 0
-	// find maximu length
+	max := 0
+	// find maximum length
 	for _, j := range(x) {
-		if len(j) > max_ {
-			max_ = len(j)		
+		if len(j) > max {
+			max = len(j)		
 		}
 	}
 	temp := make([]string,0)
 	for _,j  := range(x) {
-		temp = append(temp,j+strings.Repeat(" ",max_-len(j)))	
+		temp = append(temp,j+strings.Repeat(" ",max-len(j)))	
 	}
 	return temp
 }
 
-func Mod_split(x string, mod int ) []string {
+func ModSplit(x string, mod int ) []string {
 
 	if len(x) < mod {
 		return []string{x}
 	}else {
-		to_return := make([]string,0)	
+		toReturn := make([]string,0)	
 		counter :=0
 		temp := ""
 		for _,j := range(x){
@@ -36,29 +36,30 @@ func Mod_split(x string, mod int ) []string {
 				temp+=string(j)
 				counter++
 			}else{
-				to_return = append(to_return,temp)
+				toReturn = append(toReturn,temp)
 				temp = string(j)
 				counter = 1
 			}
 		}
-		to_return = append(to_return,temp)
-		return to_return	
+		toReturn = append(toReturn,temp)
+		return toReturn	
 	}
 }
 
-func Format_string( x string, cut int) []string {
+func FormatString( x string, cut int) []string {
+	// UNUSED FUNCTION !!!! WHY ???????
 	// this function break up user input task from a long horizontal line
 	// to multiple vertical lines
 	// assume for now the input strings ia long string separated by " " 
 	aka := strings.Split(x," ")
-	processed_aka := make([]string,0)
+	processedAka := make([]string,0)
 	
 	// preprocessing step
 	for _,j := range aka {
-		   processed_aka = append(processed_aka,Mod_split(j,cut)...)
+		   processedAka = append(processedAka,ModSplit(j,cut)...)
 		}
 
-	return (processed_aka)
+	return (processedAka)
 }
 
 func Formatez(t time.Time ) []string {
@@ -80,27 +81,27 @@ func CustomFunction(s [][]string) []string {
 	//                 "         ogre           ",
 	//                 "         buffoon        "]
 
-	end_string_array := make([]string,0) // the final array to be returned
-	max_length_index := 0
-	max_length := 0
+	endStringArray := make([]string,0) // the final array to be returned
+	maxLengthIndex := 0
+	maxLength := 0
 
 	// find array that has most number of elements
 	for i,j := range(s){
 		k := len(j)
-		if k > max_length {
-			max_length = k
-			max_length_index = i
+		if k > maxLength {
+			maxLength = k
+			maxLengthIndex = i
 		}
 	}
 	// iterate through the arrays in the array to make them 
 	//of equal length, and then equalize the inner array
 	for i,_ := range(s){
-		if i != max_length_index{
-			for len(s[i]) < max_length{ //weird change
+		if i != maxLengthIndex{
+			for len(s[i]) < maxLength{ //weird change
 				s[i] = append(s[i]," ")
 			}	
 		}
-		s[i] = array_equalizer(s[i])
+		s[i] = ArrayEqualizer(s[i])
 
 
 	}
@@ -112,8 +113,8 @@ func CustomFunction(s [][]string) []string {
 			a = append(a,s[j][i])	
 
 		}
-		 end_string_array = append(end_string_array,strings.Join(a, "    " ))
+		 endStringArray = append(endStringArray,strings.Join(a, "    " ))
 	}
-	return end_string_array
+	return endStringArray
 
 }

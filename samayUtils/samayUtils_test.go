@@ -4,7 +4,7 @@ import "testing"
 import "reflect"
 
 func TestFirst (t *testing.T){
-	a := array_equalizer([]string{"aplha","beta","g"})
+	a := ArrayEqualizer([]string{"aplha","beta","g"})
 	for _,j := range(a){
 		if len(j) != 5{
 			t.Errorf(" Length isn't right ")
@@ -39,7 +39,7 @@ func TestOfCustom(t *testing.T){
 func TestMod_split(t *testing.T){
 
 	a :="aaaaabbbbbc"
-	b := Mod_split(a,5)
+	b := ModSplit(a,5)
 	if !reflect.DeepEqual(b,[]string{"aaaaa","bbbbb","c"}){
 		t.Error("Actual output is :",b)
 	}
@@ -47,7 +47,7 @@ func TestMod_split(t *testing.T){
 
 }
 
-func TestFormat_string(t *testing.T){
+func TestFormatString(t *testing.T){
 
 	//a :=" The name of gotham is batman"
 	//b := Format_string(a,3)

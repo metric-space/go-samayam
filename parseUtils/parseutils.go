@@ -40,12 +40,12 @@ func Validate ( commandString []string) bool {
 		}
 		break
 	case "RESTART":
-		if length == 1 {
+		if length == 2 {
 			return true
 		}
 		break
 	case "STOP":
-		if length == 1 {
+		if length == 2 {
 			return true
 		}
 		break	
