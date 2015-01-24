@@ -75,18 +75,39 @@ func ( t *Task) DrawTask (x,y,padding int){
 	timeStart = append(timeStart,utils.Formatez(t.Start)...)
 
 	s := [][]string{[]string{strconv.Itoa(t.Index)},[]string{t.TaskString},timeStart}
+
 	
-	if !t.End.IsZero(){
+
+	if t.End.IsZero(){
+
+		// calculate the time difference compared to time.Now()
+		temp := time.Now()
+		b:= temp.Sub(t.Start)
+		hours := int(b.Hours())
+		minutes :=  int(b.Minutes())-60*int(b.Hours())
+		seconds := int(b.Seconds())-(3600*hours+60*minutes)	
+
+		//------------------------------------------------------
+
+
+
+		interval := []string{}
+		interval = append(interval,[]string{" INTERVAL "," ----- "}...)
+		temp1 := []string{"Seconds :"+strconv.Itoa(seconds), "Minutes :"+strconv.Itoa(minutes), "Hours   :"+strconv.Itoa(hours)}
+		interval = append(interval,temp1...)
+		s = append(s,interval)	
+	}else{
+		interval := []string{}
+		interval = append(interval,[]string{" INTERVAL "," ----- "}...)
+		temp1 := []string{"Seconds :"+strconv.Itoa(t.Seconds), "Minutes :"+strconv.Itoa(t.Minutes), "Hours   :"+strconv.Itoa(t.Hours)}
+		interval = append(interval,temp1...)
+		s = append(s,interval)
+
 		timeStop := []string{}
 		timeStop = append(timeStop,[]string{" STOP "," ----- "}...)
 		timeStop = append(timeStop,utils.Formatez(t.End)...)
 		s = append(s,timeStop)	
 
-		interval := []string{}
-		interval = append(interval,[]string{" INTERVAL "," ----- "}...)
-		temp := []string{"Seconds :"+strconv.Itoa(t.Seconds), "Minutes :"+strconv.Itoa(t.Minutes), "Hours   :"+strconv.Itoa(t.Hours)}
-		interval = append(interval,temp...)
-		s = append(s,interval)	
 	}
 
 	endStringArray := utils.CustomFunction(s)
@@ -177,10 +198,10 @@ func main(){
 	defer termbox.Close()
 	screenW,screenH := termbox.Size()
 
-	
 	if errit != nil {
 		panic(" Trouble somewhere")
 	} else {
+		
 		file.Check(DIRECTORY,FILE)
 
 		startIndex := 0
@@ -188,16 +209,37 @@ func main(){
 		x,_ := user.Current()
 		destination := x.HomeDir+"/"+DIRECTORY+"/"+FILE
 		file.Get(destination,&mainTree)
-		for  {
-			mainTree.DrawTree(startIndex)
 
-			commandbox := draw.BOX{Xstart:HSPACE,Ystart:screenH-VSPACE-3,Width:screenW-HSPACE-1,Height:3}	
-			commandbox.Box()
-			draw.String("COMMAND : ",HSPACE+2,screenH-VSPACE-2)
-			draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",HSPACE+1,screenH-1)
+		commandbox := draw.BOX{Xstart:HSPACE,Ystart:screenH-VSPACE-3,Width:screenW-HSPACE-1,Height:3}
+		ogg := Insert{x:HSPACE+3+len("COMMAND :"),y:screenH-VSPACE-2,buffer:""}
+		
+		//----------------- dance of functions starts here--------------------------------------------
+
+
+		go func(){
+			for {
+				//termbox.Clear(draw.FG,draw.BG)
+				atb := time.Now()
+				toDisplay := atb.Format("Jan 2 15:04:05pm ")
+				draw.String(toDisplay,screenW-len(toDisplay),VSPACE-2)
+
+
+
+				draw.String("COMMAND : ",HSPACE+2,screenH-VSPACE-2)
+				draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",HSPACE+1,screenH-1)
+
+
+				mainTree.DrawTree(startIndex)
+				commandbox.Box()
+				termbox.Flush()
+				time.Sleep(time.Second)
+			}
+		}()
+
+		for  {
 			termbox.Flush()
 			g := termbox.PollEvent()
-			ogg := Insert{x:HSPACE+2+len("COMMAND :"),y:screenH-VSPACE-2,buffer:""}
+			
 			if g.Ch == 'z'{
 				break
 			} else if g.Ch == 'h' {
@@ -212,6 +254,7 @@ func main(){
 					g :=  termbox.PollEvent()
 					if  g.Key == termbox.KeyEnter {
 						a:= parse.Tokenize(ogg.buffer)
+						ogg.buffer = ""
 						if parse.Validate(a){
 							act(a,destination)
 						}
