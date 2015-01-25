@@ -212,7 +212,12 @@ func main(){
 
 		commandbox := draw.BOX{Xstart:HSPACE,Ystart:screenH-VSPACE-3,Width:screenW-HSPACE-1,Height:3}
 		ogg := Insert{x:HSPACE+3+len("COMMAND :"),y:screenH-VSPACE-2,buffer:""}
+	
+		// various channels
 		
+		hideUnhide := make(chan int,1)
+
+
 		//----------------- dance of functions starts here--------------------------------------------
 
 
@@ -222,17 +227,27 @@ func main(){
 				atb := time.Now()
 				toDisplay := atb.Format("Jan 2 15:04:05pm ")
 				draw.String(toDisplay,screenW-len(toDisplay),VSPACE-2)
-
-
-
-				draw.String("COMMAND : ",HSPACE+2,screenH-VSPACE-2)
-				draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",HSPACE+1,screenH-1)
-
-
-				mainTree.DrawTree(startIndex)
-				commandbox.Box()
 				termbox.Flush()
 				time.Sleep(time.Second)
+			}
+		}()
+
+		go func(){
+
+			for {
+				select {
+
+				case <- hideUnhide:
+					<-hideUnhide // blocking action
+				default:
+					draw.String("COMMAND : ",HSPACE+2,screenH-VSPACE-2)
+					draw.String(" [ Press i to enter commands ][ Press h for help ][ Press z to quit ] ",HSPACE+1,screenH-1)
+					mainTree.DrawTree(startIndex)
+					commandbox.Box()
+					termbox.Flush()
+					time.Sleep(100*time.Millisecond)
+			
+				}
 			}
 		}()
 
@@ -243,11 +258,16 @@ func main(){
 			if g.Ch == 'z'{
 				break
 			} else if g.Ch == 'h' {
-				termbox.Clear(draw.FG,draw.BG)
+				termbox.Clear(draw.FG,draw.BG) // clears the screen to display options
+				hideUnhide <- 3 // the value here doesn't matter
+
 				draw.String(" [ Press any button to exit ] ",HSPACE+1,screenH-1)
 				draw.String("  ( ADD taskString) || ( DELETE INDEX) || ( EDIT INDEX taskString  )||(STOP INDEX) || ( RESTART INDEX )",HSPACE,int(screenH/2))
 				termbox.Flush()
 				termbox.PollEvent()
+
+				hideUnhide <-3
+
 			}else if g.Ch == 'i'{
 				for {
 
